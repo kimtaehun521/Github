@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.greedy.section01.remix.MusicMapper">
+
+  <resultMap type="com.greedy.common.MusicDTO" id="musicResultMap">
+  	<id property="musicCode" column="MUSIC_CODE"/>
+  	<result property="musicName" column="MUSIC_NAME"/>
+  	<result property="categoryCode" column="CATEGORY_CODE"/>
+  	<result property="downloadAbleStatus" column="DOWNLOADABLE_STATUS"/>
+  	<result property="artist" column="ARTIST"/>
+  </resultMap>
+
+  <select id="selectAllMusic" resultMap="musicResultMap">
+    SELECT
+           MUSIC_CODE
+         , MUSIC_NAME
+         , CATEGORY_CODE
+         , DOWNLOADABLE_STATUS
+         , ARTIST
+      FROM PLAYLIST
+     WHERE DOWNLOADABLE_STATUS = 'Y'
+     ORDER BY MUSIC_CODE
+  </select>
+
+  <select id="selectMusicByCode" parameterType="_int" resultMap="musicResultMap">
+     SELECT
+           MUSIC_CODE
+         , MUSIC_NAME
+         , CATEGORY_CODE
+         , DOWNLOADABLE_STATUS
+         , ARTIST
+      FROM PLAYLIST
+     WHERE DOWNLOADABLE_STATUS = 'Y'  
+       AND MUSIC_CODE = #{ code }
+  </select>
+
+  <insert id="inputMusic" parameterType="com.greedy.common.MusicDTO">
+  	INSERT
+  	  INTO PLAYLIST
+  	(
+  	  MUSIC_CODE
+  	, MUSIC_NAME
+  	, CATEGORY_CODE
+  	, ARTIST
+  	, DOWNLOADABLE_STATUS
+  	)
+  	VALUES
+  	(
+  	  SEQ_PLAYLIST.NEXTVAL
+  	, #{ musicName }
+  	, #{ categoryCode }
+  	, #{ artist }
+  	, 'Y'
+  	)
+
+  </insert>
+
+  <update id="updateMusic" parameterType="com.greedy.common.MusicDTO">
+  	UPDATE
+  	       PLAYLIST
+  	   SET MUSIC_NAME = #{ musicName }
+  	     , CATEGORY_CODE = #{ categoryCode }
+  	     , ARTIST = #{ artist }
+  	 WHERE MUSIC_CODE = #{ musicCode }
+  </update>
+
+  <delete id="deleteMusic" parameterType="_int">
+  	DELETE
+  	  FROM PLAYLIST
+  	 WHERE MUSIC_CODE = #{ musicCode }
+  </delete>
+
+  <select id="searchMusicByRandomMusicCode" parameterType="hashmap" resultMap="musicResultMap">
+    SELECT
+           MUSIC_CODE
+         , MUSIC_NAME
+         , ARTIST
+         , CATEGORY_CODE
+         , DOWNLOADABLE_STATUS
+      FROM PLAYLIST
+     WHERE DOWNLOADABLE_STATUS = 'Y'  
+       AND MUSIC_CODE IN
+     <foreach collection="randomMusicCodeList" item="musicCode" open="(" separator="," close=")">
+     	#{ musicCode }
+     </foreach>
+
+  </select>
+
+
+   <select id="searchMusicBySupCategory" parameterType="com.greedy.common.SearchMusic" resultMap="musicResultMap">
+    SELECT
+           MUSIC_CODE
+         , MUSIC_NAME
+         , ARTIST
+         , CATEGORY_CODE
+         , DOWNLOADABLE_STATUS
+      FROM PLAYLIST
+     WHERE DOWNLOADABLE_STATUS = 'Y'
+     <choose>
+     	<when test="value == '케이팝'">
+     	AND CATEGORY_CODE IN (1)
+     	</when>
+     	<when test="value == '발라드'">
+     	AND CATEGORY_CODE IN (2)
+     	</when>
+     	<when test="value == '트로트'">
+     	AND CATEGORY_CODE IN (3)
+     	</when>
+     	<otherwise>
+     	AND CATEGORY_CODE IN (4)
+     	</otherwise>
+     </choose>
+     ORDER BY CATEGORY_CODE
+  </select>
+
+
+
+
+
+</mapper>
